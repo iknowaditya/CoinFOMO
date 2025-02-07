@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Bell, Lock, User, Globe, Eye } from "lucide-react";
+import { Moon, Sun, Globe } from "lucide-react";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();

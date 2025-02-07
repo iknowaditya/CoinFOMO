@@ -19,7 +19,15 @@ interface PriceChartProps {
 
 const PriceChart = ({ data }: PriceChartProps) => {
   // Custom tooltip component
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+  }) => {
     if (active && payload && payload.length) {
       const value = payload[0].value;
       return (

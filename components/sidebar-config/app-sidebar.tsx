@@ -19,9 +19,9 @@ import {
   BarChart3,
   LayoutDashboard,
   Settings,
-  MessageSquare,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 const items = [
   {
@@ -102,7 +102,13 @@ export default function AppSidebar() {
       <SidebarHeader className="h-16 flex items-center px-6 justify-center">
         <SidebarMenuButton asChild>
           <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Logo" className="h-5 w-5" />
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={20}
+              height={20}
+              className="h-5 w-5"
+            />
             <span className="font-medium text-xl">CoinFOMO</span>
           </Link>
         </SidebarMenuButton>

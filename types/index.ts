@@ -93,3 +93,9 @@ export interface UserType {
   createdAt: Date;
   updatedAt: Date;
 }
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+  general?: string;
+}

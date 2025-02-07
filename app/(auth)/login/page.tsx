@@ -6,7 +6,6 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,12 +20,18 @@ import { Icons } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/sidebar-config/mode-toggle";
 
+// Types for form errors
+interface FormErrors {
+  email?: string;
+  password?: string;
+  general?: string;
+}
+
 const StaticPattern = () => {
   const maskId = "gradientMask";
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-zinc-900">
-      {/* Base Pattern */}
       <svg
         className="absolute inset-0 w-full h-full opacity-10"
         xmlns="http://www.w3.org/2000/svg"
@@ -63,13 +68,18 @@ const StaticPattern = () => {
         <rect width="100%" height="100%" fill={`url(#${maskId})`} />
       </svg>
 
-      {/* Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-8 z-10">
         <div className="flex items-center justify-center space-x-2 mb-6">
           <div className="text-green-500">
-            <Image src="/logo.svg" alt="CoinFOMO Logo" width={40} height={40} />
+            <Image
+              src="/logo.svg"
+              alt="CoinFOMO Logo"
+              width={40}
+              height={40}
+              priority
+            />
           </div>
-          <h1 className="text-3xl md:text-4xl  font-bold">CoinFOMO</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">CoinFOMO</h1>
         </div>
         <div className="text-center space-y-4 max-w-2xl">
           <h2 className="text-2xl md:text-3xl font-bold text-white">
@@ -85,29 +95,60 @@ const StaticPattern = () => {
   );
 };
 
-// Main Login Page Component
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+  const validateForm = (email: string, password: string): boolean => {
+    const errors: FormErrors = {};
+
+    if (!email) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    setIsLoading(true);
+    setFormErrors({});
 
     const target = event.target as typeof event.target & {
       email: { value: string };
       password: { value: string };
     };
 
+    const email = target.email.value;
+    const password = target.password.value;
+
+    if (!validateForm(email, password)) {
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
       const result = await signIn("credentials", {
-        email: target.email.value,
-        password: target.password.value,
+        email,
+        password,
         redirect: false,
       });
 
       if (result?.error === "GoogleUser") {
+        setFormErrors({
+          general: "This email is registered with Google",
+        });
         toast.error("This email is registered with Google", {
           description:
             "Please use the 'Continue with Google' button to sign in.",
@@ -117,6 +158,9 @@ export default function LoginPage() {
           },
         });
       } else if (result?.error) {
+        setFormErrors({
+          general: "Invalid email or password",
+        });
         toast.error("Invalid credentials", {
           description: "Please check your email and password.",
         });
@@ -126,6 +170,10 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch (error) {
+      console.error("Login error:", error);
+      setFormErrors({
+        general: "An unexpected error occurred",
+      });
       toast.error("An error occurred", {
         description: "Please try again later.",
       });
@@ -136,11 +184,27 @@ export default function LoginPage() {
 
   const loginWithGoogle = async () => {
     setIsGoogleLoading(true);
+    setFormErrors({});
+
     try {
-      await signIn("google", {
+      const result = await signIn("google", {
         callbackUrl: "/dashboard",
+        redirect: false,
       });
+
+      if (result?.error) {
+        setFormErrors({
+          general: "Google login failed",
+        });
+        toast.error("Google login failed", {
+          description: "Please try again later.",
+        });
+      }
     } catch (error) {
+      console.error("Google login error:", error);
+      setFormErrors({
+        general: "Failed to connect to Google",
+      });
       toast.error("Google login failed", {
         description: "Please try again later.",
       });
@@ -159,13 +223,14 @@ export default function LoginPage() {
       <div className="flex w-full md:w-1/2 items-center justify-center p-6">
         <Card className="w-full max-w-md border-0 bg-card/50">
           <CardHeader className="space-y-1">
-            <div className="flex items-center justify-center space-x-2 mb-6 md:hidden ">
+            <div className="flex items-center justify-center space-x-2 mb-6 md:hidden">
               <div className="text-green-500">
                 <Image
                   src="/logo.svg"
                   alt="CoinFOMO Logo"
                   width={40}
                   height={40}
+                  priority
                 />
               </div>
               <h1 className="text-xl font-bold">CoinFOMO</h1>
@@ -176,6 +241,13 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
+            {/* Error Message */}
+            {formErrors.general && (
+              <div className="p-3 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg">
+                {formErrors.general}
+              </div>
+            )}
+
             {/* Google Login Button */}
             <Button
               variant="outline"
@@ -220,51 +292,67 @@ export default function LoginPage() {
             </div>
 
             {/* Email/Password Form */}
-            <form onSubmit={onSubmit}>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="dark:text-gray-400 text-gray-500"
-                  >
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="password"
-                    className="dark:text-gray-400 text-gray-500"
-                  >
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="**********"
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-green-500 hover:bg-green-600 text-black font-medium"
-                  disabled={isLoading}
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="email"
+                  className="dark:text-gray-400 text-gray-500"
                 >
-                  {isLoading && (
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Sign In
-                </Button>
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  className={`w-full ${
+                    formErrors.email ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
+                  required
+                />
+                {formErrors.email && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {formErrors.email}
+                  </p>
+                )}
               </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="password"
+                  className="dark:text-gray-400 text-gray-500"
+                >
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="**********"
+                  className={`w-full ${
+                    formErrors.password
+                      ? "border-red-500 focus:ring-red-500"
+                      : ""
+                  }`}
+                  required
+                />
+                {formErrors.password && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {formErrors.password}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-green-500 hover:bg-green-600 text-black font-medium"
+                disabled={isLoading}
+              >
+                {isLoading && (
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Sign In
+              </Button>
             </form>
           </CardContent>
 

@@ -7,7 +7,6 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "next-themes"; // Assuming you're using next-themes for theme management
 

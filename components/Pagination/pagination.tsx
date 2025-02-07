@@ -18,7 +18,7 @@ const Pagination = ({
   const renderPageNumbers = () => {
     const pages = [];
     let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
+    const endPage = Math.min(totalPages, startPage + 4);
 
     if (endPage - startPage < 4) {
       startPage = Math.max(1, endPage - 4);

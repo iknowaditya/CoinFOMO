@@ -20,12 +20,19 @@ import { Icons } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/sidebar-config/mode-toggle";
 
+// Types for form errors
+interface FormErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+  general?: string;
+}
+
 const StaticPattern = () => {
   const maskId = "gradientMask";
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-zinc-900">
-      {/* Base Pattern */}
       <svg
         className="absolute inset-0 w-full h-full opacity-10"
         xmlns="http://www.w3.org/2000/svg"
@@ -62,29 +69,27 @@ const StaticPattern = () => {
         <rect width="100%" height="100%" fill={`url(#${maskId})`} />
       </svg>
 
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10">
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-8 z-10">
-          <div className="flex items-center justify-center space-x-2 mb-6">
-            <div className="text-green-500">
-              <Image
-                src="/logo.svg"
-                alt="CoinFOMO Logo"
-                width={40}
-                height={40}
-              />
-            </div>
-            <h1 className="text-3xl md:text-4xl  font-bold">CoinFOMO</h1>
+      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-8 z-10">
+        <div className="flex items-center justify-center space-x-2 mb-6">
+          <div className="text-green-500">
+            <Image
+              src="/logo.svg"
+              alt="CoinFOMO Logo"
+              width={40}
+              height={40}
+              priority
+            />
           </div>
-          <div className="text-center space-y-4 max-w-2xl">
-            <h2 className="text-2xl md:text-3xl font-bold text-white">
-              Track Crypto, Seize Opportunities
-            </h2>
-            <p className="text-zinc-400 text-base md:text-lg">
-              Stay ahead of the market with real-time cryptocurrency tracking
-              and analytics
-            </p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-bold">CoinFOMO</h1>
+        </div>
+        <div className="text-center space-y-4 max-w-2xl">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
+            Track Crypto, Seize Opportunities
+          </h2>
+          <p className="text-zinc-400 text-base md:text-lg">
+            Stay ahead of the market with real-time cryptocurrency tracking and
+            analytics
+          </p>
         </div>
       </div>
     </div>
@@ -95,16 +100,61 @@ export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+  const validateForm = (
+    name: string,
+    email: string,
+    password: string
+  ): boolean => {
+    const errors: FormErrors = {};
+
+    // Validate name
+    if (!name.trim()) {
+      errors.name = "Name is required";
+    } else if (name.length < 2) {
+      errors.name = "Name must be at least 2 characters long";
+    }
+
+    // Validate email
+    if (!email) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    // Validate password
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    } else if (!/(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
+      errors.password = "Password must contain both letters and numbers";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    setIsLoading(true);
+    setFormErrors({});
 
     const target = event.target as typeof event.target & {
       name: { value: string };
       email: { value: string };
       password: { value: string };
     };
+
+    const name = target.name.value.trim();
+    const email = target.email.value.trim();
+    const password = target.password.value;
+
+    if (!validateForm(name, email, password)) {
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -113,9 +163,9 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: target.name.value,
-          email: target.email.value,
-          password: target.password.value,
+          name,
+          email,
+          password,
         }),
       });
 
@@ -127,12 +177,33 @@ export default function RegisterPage() {
         });
         router.push("/login");
       } else {
-        toast.error("Registration failed", {
-          description:
-            data.message || "Please try again with different credentials.",
+        setFormErrors({
+          general: data.message || "Registration failed. Please try again.",
         });
+
+        if (data.code === "EMAIL_EXISTS") {
+          setFormErrors({
+            email: "This email is already registered",
+          });
+          toast.error("Email already registered", {
+            description: "Please try signing in instead.",
+            action: {
+              label: "Sign In",
+              onClick: () => router.push("/login"),
+            },
+          });
+        } else {
+          toast.error("Registration failed", {
+            description:
+              data.message || "Please try again with different credentials.",
+          });
+        }
       }
     } catch (error) {
+      console.error("Registration error:", error);
+      setFormErrors({
+        general: "An unexpected error occurred. Please try again later.",
+      });
       toast.error("An error occurred", {
         description: "Please try again later.",
       });
@@ -143,11 +214,27 @@ export default function RegisterPage() {
 
   const registerWithGoogle = async () => {
     setIsGoogleLoading(true);
+    setFormErrors({});
+
     try {
-      await signIn("google", {
+      const result = await signIn("google", {
         callbackUrl: "/dashboard",
+        redirect: false,
       });
+
+      if (result?.error) {
+        setFormErrors({
+          general: "Google sign up failed",
+        });
+        toast.error("Google sign up failed", {
+          description: "Please try again later.",
+        });
+      }
     } catch (error) {
+      console.error("Google registration error:", error);
+      setFormErrors({
+        general: "Failed to connect to Google",
+      });
       toast.error("Google sign up failed", {
         description: "Please try again later.",
       });
@@ -161,16 +248,18 @@ export default function RegisterPage() {
       <div className="absolute top-4 right-4 z-50">
         <ModeToggle />
       </div>
+
       <div className="flex w-full md:w-1/2 items-center justify-center p-6">
         <Card className="w-full max-w-md border-0 bg-card/50">
           <CardHeader className="space-y-1">
-            <div className="flex items-center justify-center space-x-2 mb-6 md:hidden ">
+            <div className="flex items-center justify-center space-x-2 mb-6 md:hidden">
               <div className="text-green-500">
                 <Image
                   src="/logo.svg"
                   alt="CoinFOMO Logo"
                   width={40}
                   height={40}
+                  priority
                 />
               </div>
               <h1 className="text-xl font-bold">CoinFOMO</h1>
@@ -179,7 +268,15 @@ export default function RegisterPage() {
               Create an account
             </CardTitle>
           </CardHeader>
+
           <CardContent className="space-y-4">
+            {/* General Error Message */}
+            {formErrors.general && (
+              <div className="p-3 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg">
+                {formErrors.general}
+              </div>
+            )}
+
             {/* Google Register Button */}
             <Button
               variant="outline"
@@ -214,78 +311,100 @@ export default function RegisterPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
+                <Separator className="w-full border-zinc-700" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="dark:bg-zinc-900 bg-gray-200 px-2 dark:text-zinc-400 text-zinc-600">
+                <span className="dark:bg-zinc-900 bg-zinc-100 px-2 dark:text-zinc-400 text-zinc-600">
                   Or continue with
                 </span>
               </div>
             </div>
 
-            <form onSubmit={onSubmit}>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="name"
-                    className="dark:text-gray-400 text-gray-500"
-                  >
-                    Name
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="John Doe"
-                    className=""
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="dark:text-gray-400 text-gray-500"
-                  >
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    className=""
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="password"
-                    className="dark:text-gray-400 text-gray-500"
-                  >
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    className=""
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-green-500 hover:bg-green-600 text-black font-medium"
-                  disabled={isLoading}
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="name"
+                  className="dark:text-gray-400 text-gray-500"
                 >
-                  {isLoading && (
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Create Account
-                </Button>
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="John Doe"
+                  className={`w-full ${
+                    formErrors.name ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
+                  required
+                />
+                {formErrors.name && (
+                  <p className="text-sm text-red-500 mt-1">{formErrors.name}</p>
+                )}
               </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="email"
+                  className="dark:text-gray-400 text-gray-500"
+                >
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  className={`w-full ${
+                    formErrors.email ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
+                  required
+                />
+                {formErrors.email && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {formErrors.email}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="password"
+                  className="dark:text-gray-400 text-gray-500"
+                >
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  className={`w-full ${
+                    formErrors.password
+                      ? "border-red-500 focus:ring-red-500"
+                      : ""
+                  }`}
+                  required
+                />
+                {formErrors.password && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {formErrors.password}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-green-500 hover:bg-green-600 text-black font-medium"
+                disabled={isLoading}
+              >
+                {isLoading && (
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Create Account
+              </Button>
             </form>
           </CardContent>
+
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-sm text-gray-400 text-center">
               Already have an account?{" "}

@@ -13,11 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { FC } from "react";
 
-interface UserAvatarProps {}
+interface UserAvatarProps {
+  children?: React.ReactNode;
+}
 
 const UserAvatar: FC<UserAvatarProps> = () => {
   const { data: session, status } = useSession();
