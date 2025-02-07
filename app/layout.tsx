@@ -21,6 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 // Metadata
 export const metadata: Metadata = {
+  icons: "/logo.svg",
   title: "CoinFOMO - Crypto Dashboard",
   description: "Track your crypto portfolio and market trends",
   keywords: ["crypto", "dashboard", "portfolio", "tracking"],

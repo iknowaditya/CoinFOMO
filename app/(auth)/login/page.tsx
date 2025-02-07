@@ -64,12 +64,18 @@ const StaticPattern = () => {
       </svg>
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10">
-        <div className="text-center space-y-4">
-          <h2 className="text-4xl font-bold text-white">
+      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-8 z-10">
+        <div className="flex items-center justify-center space-x-2 mb-6">
+          <div className="text-green-500">
+            <Image src="/logo.svg" alt="CoinFOMO Logo" width={40} height={40} />
+          </div>
+          <h1 className="text-3xl md:text-4xl  font-bold">CoinFOMO</h1>
+        </div>
+        <div className="text-center space-y-4 max-w-2xl">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
             Track Crypto, Seize Opportunities
           </h2>
-          <p className="text-zinc-400 text-lg ">
+          <p className="text-zinc-400 text-base md:text-lg">
             Stay ahead of the market with real-time cryptocurrency tracking and
             analytics
           </p>
@@ -153,7 +159,7 @@ export default function LoginPage() {
       <div className="flex w-full md:w-1/2 items-center justify-center p-6">
         <Card className="w-full max-w-md border-0 bg-card/50">
           <CardHeader className="space-y-1">
-            <div className="flex items-center justify-center space-x-2 mb-6">
+            <div className="flex items-center justify-center space-x-2 mb-6 md:hidden ">
               <div className="text-green-500">
                 <Image
                   src="/logo.svg"
