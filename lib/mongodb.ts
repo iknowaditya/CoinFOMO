@@ -1,10 +1,15 @@
-import mongoose from "mongoose";
+import mongoose, { Connection } from "mongoose";
 
+// Define interface for global mongoose cache
+interface MongooseCache {
+  conn: Connection | null;
+  promise: Promise<typeof mongoose> | null;
+}
+
+// Declare global mongoose cache
 declare global {
-  var mongoose: {
-    conn: mongoose.Mongoose | null;
-    promise: Promise<mongoose.Mongoose> | null;
-  };
+  // eslint-disable-next-line no-var
+  var mongooseCache: MongooseCache | undefined;
 }
 
 const MONGODB_URI = process.env.MONGODB_URI!;
@@ -15,15 +20,26 @@ if (!MONGODB_URI) {
   );
 }
 
-let cached = global.mongoose;
+// Initialize cached connection
+let cached = global.mongooseCache;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = global.mongooseCache = {
+    conn: null,
+    promise: null,
+  };
 }
 
 async function connectDB() {
-  if (cached.conn) {
+  if (cached?.conn) {
     return cached.conn;
+  }
+
+  if (!cached) {
+    cached = global.mongooseCache = {
+      conn: null,
+      promise: null,
+    };
   }
 
   if (!cached.promise) {
@@ -37,7 +53,8 @@ async function connectDB() {
   }
 
   try {
-    cached.conn = await cached.promise;
+    const mongoose = await cached.promise;
+    cached.conn = mongoose.connection;
   } catch (e) {
     cached.promise = null;
     throw e;
