@@ -98,7 +98,9 @@ const UserAvatar: FC<UserAvatarProps> = () => {
   );
 };
 
-interface NavbarProps {}
+interface NavbarProps {
+  children?: React.ReactNode;
+}
 
 const Navbar: FC<NavbarProps> = () => {
   return (
