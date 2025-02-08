@@ -22,6 +22,7 @@ const Dashboard = () => {
     historicalData,
     isLoading,
     error,
+    retryFetch,
     timeFrame,
     setTimeFrame,
     fetchHistoricalData,
@@ -75,9 +76,23 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         <div className="space-y-6">
-          {error && (
+          {/* {error && (
             <Alert variant="destructive" className="bg-red-700/10 text-red-700">
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )} */}
+
+          {error && (
+            <Alert variant="destructive" className="bg-red-700/10 text-red-700">
+              <AlertDescription className="flex items-center justify-between">
+                <span>{error}</span>
+                <button
+                  onClick={retryFetch}
+                  className="px-3 py-1 text-sm bg-red-700 text-white rounded hover:bg-red-800 transition-colors"
+                >
+                  Retry
+                </button>
+              </AlertDescription>
             </Alert>
           )}
 
