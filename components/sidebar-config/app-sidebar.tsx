@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useSidebar } from "@/components/ui/sidebar"; // Adjust the import path as necessary
 
 const items = [
   {
@@ -79,6 +80,7 @@ const SidebarSkeleton = () => {
 export default function AppSidebar() {
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
+  const { state } = useSidebar();
 
   // Simulate loading state
   useEffect(() => {
@@ -98,7 +100,11 @@ export default function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon" variant="floating" className="min-h-screen">
+    <Sidebar
+      collapsible="icon"
+      variant="floating"
+      className="min-h-screen transition-all duration-300"
+    >
       <SidebarHeader className="h-16 flex items-center px-6 justify-center">
         <SidebarMenuButton asChild>
           <Link href="/dashboard" className="flex items-center gap-2">
@@ -109,7 +115,9 @@ export default function AppSidebar() {
               height={20}
               className="h-5 w-5"
             />
-            <span className="font-medium text-xl">CoinFOMO</span>
+            {state === "expanded" && (
+              <span className="font-medium text-xl">CoinFOMO</span>
+            )}
           </Link>
         </SidebarMenuButton>
       </SidebarHeader>

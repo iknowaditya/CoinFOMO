@@ -97,7 +97,7 @@ const Dashboard = () => {
           )}
 
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ">
             <div className="flex items-center gap-4">
               {isLoading ? (
                 <div className="flex items-center gap-4">
@@ -156,7 +156,7 @@ const Dashboard = () => {
             </div>
 
             {/* Time Frame Controls */}
-            <div className="items-end md:items-center justify-end flex w-full md:h-24 bg-red-20">
+            <div className="items-end md:items-center justify-end flex w-full md:h-24 bg-red-">
               {isLoading ? (
                 <div className="flex gap-2 md:gap-4 flex-wrap md:flex-nowrap">
                   {["1d", "7d", "30d", "1y"].map((_, index) => (
@@ -167,7 +167,7 @@ const Dashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="flex gap-2 md:gap-4 flex-wrap md:flex-nowrap dark:bg-zinc-800 bg-zinc-100 px-2  py-1  rounded-full">
+                <div className="flex gap-2  flex-wrap md:flex-nowrap dark:bg-zinc-800 bg-zinc-100 px-2  py-1  rounded-full">
                   {(["1d", "7d", "30d", "1y"] as const).map((period) => (
                     <Button
                       key={period}

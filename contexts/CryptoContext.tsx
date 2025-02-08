@@ -227,7 +227,9 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
     const now = Date.now();
     if (now - lastFetchAttempt < 5000) {
       // Prevent rapid retries
-      setError("Please wait a few seconds before retrying");
+      setError(
+        "Free API usage limit reached. Please wait a few seconds before making another request."
+      );
       return;
     }
     await fetchAllCryptoData();

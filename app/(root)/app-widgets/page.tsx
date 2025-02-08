@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCryptoContext } from "@/contexts/CryptoContext";
 
 export default function WidgetsPage() {
-  const { error } = useCryptoContext();
+  const { error, retryFetch } = useCryptoContext();
   return (
     <div className="p-6 space-y-8">
       <div>
@@ -22,9 +22,23 @@ export default function WidgetsPage() {
         </p>
       </div>
 
-      {error && (
+      {/* {error && (
         <Alert variant="destructive" className="bg-red-700/10 text-red-700">
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )} */}
+
+      {error && (
+        <Alert variant="destructive" className="bg-red-700/10 text-red-700">
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={retryFetch}
+              className="px-3 py-1 text-sm bg-red-700 text-white rounded hover:bg-red-800 transition-colors"
+            >
+              Retry
+            </button>
+          </AlertDescription>
         </Alert>
       )}
 

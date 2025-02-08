@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PortfolioPage() {
-  const { selectedCrypto, error } = useCryptoContext();
+  const { selectedCrypto, error, retryFetch } = useCryptoContext();
   const [isDataLoading, setIsDataLoading] = useState(true);
 
   useEffect(() => {
@@ -64,9 +64,23 @@ export default function PortfolioPage() {
           </div>
         </div>
 
-        {error && (
+        {/* {error && (
           <Alert variant="destructive" className="bg-red-700/10 text-red-700">
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )} */}
+
+        {error && (
+          <Alert variant="destructive" className="bg-red-700/10 text-red-700">
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <button
+                onClick={retryFetch}
+                className="px-3 py-1 text-sm bg-red-700 text-white rounded hover:bg-red-800 transition-colors"
+              >
+                Retry
+              </button>
+            </AlertDescription>
           </Alert>
         )}
 
