@@ -80,7 +80,9 @@ const StaticPattern = () => {
               priority
             />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold">CoinFOMO</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-zinc-300">
+            CoinFOMO
+          </h1>
         </div>
         <div className="text-center space-y-4 max-w-2xl">
           <h2 className="text-2xl md:text-3xl font-bold text-white">
