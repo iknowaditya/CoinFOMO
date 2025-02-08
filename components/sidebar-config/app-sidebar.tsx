@@ -43,61 +43,61 @@ const items = [
 ];
 
 // Skeleton component for sidebar items
-const SidebarSkeleton = () => {
-  return (
-    <div className="space-y-8">
-      {/* Logo Skeleton */}
-      <div className="h-16 flex items-center px-6">
-        <Skeleton className="h-8 w-[140px]" />
-      </div>
-      <SidebarSeparator />
+// const SidebarSkeleton = () => {
+//   return (
+//     <div className="space-y-8">
+//       {/* Logo Skeleton */}
+//       <div className="h-16 flex items-center px-6">
+//         <Skeleton className="h-8 w-[140px]" />
+//       </div>
+//       <SidebarSeparator />
 
-      {/* Menu Items Skeleton */}
-      <div className="px-6 space-y-6">
-        <Skeleton className="h-4 w-[60px]" /> {/* Menu label */}
-        <div className="space-y-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4">
-              <Skeleton className="h-5 w-5" /> {/* Icon */}
-              <Skeleton className="h-4 w-[100px]" /> {/* Text */}
-            </div>
-          ))}
-        </div>
-      </div>
+//       {/* Menu Items Skeleton */}
+//       <div className="px-6 space-y-6">
+//         <Skeleton className="h-4 w-[60px]" /> {/* Menu label */}
+//         <div className="space-y-2">
+//           {[...Array(4)].map((_, i) => (
+//             <div key={i} className="flex items-center gap-4">
+//               <Skeleton className="h-5 w-5" /> {/* Icon */}
+//               <Skeleton className="h-4 w-[100px]" /> {/* Text */}
+//             </div>
+//           ))}
+//         </div>
+//       </div>
 
-      {/* General Section Skeleton */}
-      <div className="px-6 space-y-6">
-        <Skeleton className="h-4 w-[70px]" /> {/* General label */}
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-5 w-5" />
-          <Skeleton className="h-4 w-[80px]" />
-        </div>
-      </div>
-    </div>
-  );
-};
+//       {/* General Section Skeleton */}
+//       <div className="px-6 space-y-6">
+//         <Skeleton className="h-4 w-[70px]" /> {/* General label */}
+//         <div className="flex items-center gap-4">
+//           <Skeleton className="h-5 w-5" />
+//           <Skeleton className="h-4 w-[80px]" />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
   const { state } = useSidebar();
 
   // Simulate loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setIsLoading(false);
+  //   }, 1000);
 
-    return () => clearTimeout(timer);
-  }, []);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
-  if (isLoading) {
-    return (
-      <Sidebar collapsible="icon" variant="floating" className="min-h-screen">
-        <SidebarSkeleton />
-      </Sidebar>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <Sidebar collapsible="icon" variant="floating" className="min-h-screen">
+  //       {/* <SidebarSkeleton /> */}
+  //     </Sidebar>
+  //   );
+  // }
 
   return (
     <Sidebar

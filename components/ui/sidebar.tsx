@@ -70,26 +70,52 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
 
+    // Get initial state from cookie or screen size
     const [_open, _setOpen] = React.useState(() => {
       if (typeof window !== "undefined") {
+        // Try to get state from cookie first
+        const cookieValue = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith(SIDEBAR_COOKIE_NAME))
+          ?.split("=")[1];
+
+        if (cookieValue !== undefined) {
+          return cookieValue === "true";
+        }
+
+        // If no cookie, use screen size
         return window.innerWidth >= 1340;
       }
       return defaultOpen;
     });
 
+    // Handle resize with debounce
+    const handleResize = React.useCallback(() => {
+      const shouldBeOpen = window.innerWidth >= 1340;
+      if (setOpenProp) {
+        setOpenProp(shouldBeOpen);
+      } else {
+        _setOpen(shouldBeOpen);
+      }
+      // Update cookie
+      document.cookie = `${SIDEBAR_COOKIE_NAME}=${shouldBeOpen}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+    }, [setOpenProp]);
+
     React.useEffect(() => {
-      const handleResize = () => {
-        const shouldBeOpen = window.innerWidth >= 1340;
-        if (setOpenProp) {
-          setOpenProp(shouldBeOpen);
-        } else {
-          _setOpen(shouldBeOpen);
-        }
+      let timeoutId: NodeJS.Timeout;
+
+      const debouncedResize = () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(handleResize, 100);
       };
 
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }, [setOpenProp]);
+      window.addEventListener("resize", debouncedResize);
+
+      return () => {
+        window.removeEventListener("resize", debouncedResize);
+        clearTimeout(timeoutId);
+      };
+    }, [handleResize]);
 
     const open = openProp ?? _open;
     const setOpen = React.useCallback(
