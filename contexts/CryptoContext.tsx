@@ -191,11 +191,11 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const pages = [1, 2];
+      const pages = [1, 2, 3];
       const responses = await Promise.all(
         pages.map((page) =>
           fetchWithRateLimit(
-            `${process.env.NEXT_PUBLIC_COINGECKO_BASE_URL}/coins/markets?${process.env.NEXT_PUBLIC_COINGECKO_PARAMS}&per_page=249&page=${page}`
+            `${process.env.NEXT_PUBLIC_COINGECKO_BASE_URL}/coins/markets?${process.env.NEXT_PUBLIC_COINGECKO_PARAMS}&per_page=199&page=${page}`
           )
         )
       );
