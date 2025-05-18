@@ -26,11 +26,9 @@ function checkRateLimit() {
   RATE_LIMIT.requests = RATE_LIMIT.requests.filter(
     (time) => now - time < RATE_LIMIT.timeWindow
   );
-
   if (RATE_LIMIT.requests.length >= RATE_LIMIT.maxRequests) {
     throw new Error("Rate limit exceeded. Please try again in a minute.");
   }
-
   RATE_LIMIT.requests.push(now);
   return true;
 }
@@ -46,6 +44,17 @@ function getCachedData(key: string) {
 
 function setCachedData(key: string, data: any) {
   CACHE.data.set(key, { data, timestamp: Date.now() });
+}
+
+// Helper to build proxy URLs
+function buildProxyUrl(
+  endpoint: string,
+  params: Record<string, string | number>
+) {
+  const search = new URLSearchParams(params as any).toString();
+  return `/api/coingecko-proxy?endpoint=${endpoint}${
+    search ? "&" + search : ""
+  }`;
 }
 
 // Types and Interfaces
@@ -118,6 +127,7 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
   const [timeFrame, setTimeFrame] = useState<"1d" | "7d" | "30d" | "1y">("30d");
   const [lastFetchAttempt, setLastFetchAttempt] = useState<number>(0);
 
+  // Helper for rate-limited fetch
   const fetchWithRateLimit = async (url: string, options = {}) => {
     try {
       checkRateLimit();
@@ -139,6 +149,7 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Fetch historical data for a specific coin
   const fetchHistoricalData = async (id: string, days: number) => {
     setIsHistoricalLoading(true);
     setError(null);
@@ -152,10 +163,12 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const response = await fetchWithRateLimit(
-        `${process.env.NEXT_PUBLIC_COINGECKO_BASE_URL}/coins/${id}/market_chart?vs_currency=usd&days=${days}`
-      );
+      const url = buildProxyUrl(`coins/${id}/market_chart`, {
+        vs_currency: "usd",
+        days,
+      });
 
+      const response = await fetchWithRateLimit(url);
       const data = await response.json();
       setCachedData(cacheKey, data);
       setHistoricalData(data);
@@ -169,6 +182,7 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Fetch all crypto data (paginated)
   const fetchAllCryptoData = async () => {
     try {
       setIsLoading(true);
@@ -195,13 +209,19 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
       const responses = await Promise.all(
         pages.map((page) =>
           fetchWithRateLimit(
-            `${process.env.NEXT_PUBLIC_COINGECKO_BASE_URL}/coins/markets?${process.env.NEXT_PUBLIC_COINGECKO_PARAMS}&per_page=199&page=${page}`
+            buildProxyUrl("coins/markets", {
+              vs_currency: "usd",
+              order: "market_cap_desc",
+              sparkline: "false",
+              price_change_percentage: "7d,30d",
+              per_page: 199,
+              page,
+            })
           )
         )
       );
 
       const jsonData = await Promise.all(responses.map((res) => res.json()));
-
       const allCryptos = jsonData.flat();
       setCachedData("all_cryptos", allCryptos);
       setCryptos(allCryptos);
@@ -223,10 +243,10 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Retry fetch with cooldown
   const retryFetch = async () => {
     const now = Date.now();
     if (now - lastFetchAttempt < 5000) {
-      // Prevent rapid retries
       setError(
         "Free API usage limit reached. Please wait a few seconds before making another request."
       );
@@ -237,6 +257,7 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchAllCryptoData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeFrame]);
 
   return (

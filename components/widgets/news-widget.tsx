@@ -18,8 +18,8 @@ interface NewsItem {
   title: string;
   url: string;
   published_at: string;
-  source?: { title?: string }; // Optional field
-  tags?: string[]; // Optional field (to prevent errors)
+  source?: { title?: string };
+  tags?: string[];
 }
 
 export function NewsWidget() {
@@ -29,9 +29,7 @@ export function NewsWidget() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch(
-          process.env.NEXT_PUBLIC_CRYPTO_NEWS_API as string
-        );
+        const response = await fetch("/api/news");
         const data = await response.json();
 
         if (data.results) {
@@ -107,7 +105,6 @@ export function NewsWidget() {
                     </p>
                   </div>
                 </div>
-                {/* Safe check for tags */}
                 <div className="flex flex-wrap gap-2">
                   {item.tags && item.tags.length > 0 ? (
                     item.tags.map((tag) => (
